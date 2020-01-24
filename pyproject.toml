@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "airsupply"
+version = "0.1.0"
+description = "Manage OTA distribution for IPA files."
+authors = ["Michael Merickel"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+boto3 = "^1.11.8"
+jinja2 = "^2.10.3"
+click = "^7.0"
+attrs = "^19.3.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+airsupply = "airsupply.cli:main"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
