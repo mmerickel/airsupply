@@ -22,6 +22,7 @@ class IPA:
     version: str
     minimum_os_version: str
     icons: typing.Dict[int, Icon]
+    plist: typing.Dict[str, typing.Any]
 
     @contextmanager
     def open_asset(self, name):
@@ -48,6 +49,7 @@ def open_ipa(path):
             ipa = IPA(
                 zip=zip,
                 app_path=app_path,
+                plist=plist,
                 **meta,
             )
             yield ipa
