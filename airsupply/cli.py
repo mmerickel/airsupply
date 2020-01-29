@@ -1,8 +1,16 @@
 import click
+import logging
 
 @click.group()
-def main():
-    pass
+@click.option('-v', '--verbose', count=True)
+def main(verbose=0):
+    if verbose < 1:
+        level = logging.WARN
+    elif verbose == 1:
+        level = logging.INFO
+    elif verbose >= 2:
+        level = logging.DEBUG
+    logging.basicConfig(level=level)
 
 @click.command('s3:push')
 @click.option('-b', '--bucket', required=True)
@@ -10,12 +18,12 @@ def main():
 @click.option('--acl')
 @click.option('--prefix')
 @click.option('--expires', type=int, default=86400)
-@click.argument('ipa_file')
-def s3(ipa_file, bucket, acl, prefix, public, expires):
+@click.argument('package')
+def s3(package, bucket, acl, prefix, public, expires):
     from .s3 import push
 
     url = push(
-        ipa_path=ipa_file,
+        package_path=package,
         bucket=bucket,
         acl=acl,
         prefix=prefix,

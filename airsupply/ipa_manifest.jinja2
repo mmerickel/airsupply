@@ -1,0 +1,40 @@
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>items</key>
+        <array>
+            <dict>
+                <key>assets</key>
+                <array>
+                    <dict>
+                        <key>kind</key>
+                        <string>software-package</string>
+                        <key>url</key>
+                        <string>{{ ipa_url | escape }}</string>
+                    </dict>
+                    {% if image_url %}
+                    <dict>
+                        <key>kind</key>
+                        <string>display-image</string>
+                        <key>needs-shine</key>
+                        <false/>
+                        <key>url</key>
+                        <string>{{ image_url | escape }}</string>
+                    </dict>
+                    {% endif %}
+                </array>
+                <key>metadata</key>
+                <dict>
+                    <key>bundle-identifier</key>
+                    <string>{{ ipa.id }}</string>
+                    <key>bundle-version</key>
+                    <string>{{ ipa.short_version }}</string>
+                    <key>kind</key>
+                    <string>software</string>
+                    <key>title</key>
+                    <string>{{ ipa.display_name }}</string>
+                </dict>
+            </dict>
+        </array>
+    </dict>
+</plist>

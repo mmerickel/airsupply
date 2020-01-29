@@ -13,6 +13,7 @@ class Icon:
 
 @attr.s(auto_attribs=True)
 class IPA:
+    filename: str
     zip: zipfile.ZipFile
     app_path: str
 
@@ -29,7 +30,7 @@ class IPA:
         with self.zip.open(f'{self.app_path}/{name}') as fp:
             yield fp
 
-    def find_best_icon(self, target_size=72):
+    def find_best_icon(self, target_size=1024):
         best_icon = best_dist = None
         for size, icon in self.icons.items():
             dist = abs(target_size - size)
@@ -37,6 +38,15 @@ class IPA:
                 best_icon = icon
                 best_dist = dist
         return best_icon
+
+def is_ipa(path):
+    try:
+        with open(path, 'rb') as fp:
+            with zipfile.ZipFile(fp) as zip:
+                get_app_path(zip)
+                return True
+    except Exception:
+        return False
 
 @contextmanager
 def open_ipa(path):
@@ -47,6 +57,7 @@ def open_ipa(path):
                 plist = plistlib.load(plist_fp)
             meta = parse_metadata(plist, zip, app_path)
             ipa = IPA(
+                filename=path,
                 zip=zip,
                 app_path=app_path,
                 plist=plist,

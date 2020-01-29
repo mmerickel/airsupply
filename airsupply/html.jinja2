@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+    <title>{{ display_name }} v{{ version_name }} ({{ version_code }})</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <style type="text/css">
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            text-align: center;
+            color: #444;
+            font-size: 18px;
+        }
+        img {
+            display: block;
+            margin: 1em auto;
+            border: none;
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+        }
+        .btn, a.btn, a.btn:visited, a.btn:hover, a.btn:link {
+            display: inline-block;
+            border-radius: 3px;
+            background-color: #0095c8;
+            color: white;
+            padding: .8em 1em;
+            text-decoration: none;
+        }
+        a.btn:hover {
+            background-color: #00bbfb;
+            color: white;
+        }
+        p {
+            color: #999
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ display_name }}</h1>
+    <h2>{{ version_name }} ({{ version_code }})</h2>
+{% if package_type == 'ipa' %}
+    {% if image_url %}
+    <a href="itms-services://?action=download-manifest&amp;url={{ manifest_url | urlencode }}">
+        <img src="{{ image_url | safe }}">
+    </a>
+    {% endif %}
+    <a
+        href="itms-services://?action=download-manifest&amp;url={{ manifest_url | urlencode }}"
+        class="btn"
+    >
+        Tap to install
+    </a>
+    {% if minimum_os_version is defined %}
+    <p class="comment">
+        This app requires iOS {{ minimum_os_version }} or higher.
+    </p>
+    {% endif %}
+{% elif package_type == 'apk' %}
+    {% if image_url %}
+    <a href="{{ apk_url | safe }}">
+        <img src="{{ image_url | safe }}">
+    </a>
+    {% endif %}
+    <a
+        href="{{ apk_url | safe }}"
+        class="btn"
+    >
+        Tap to install
+    </a>
+{% else %}
+    {{ die('Unsupported package type') }}
+{% endif %}
+</body>
+</html>
