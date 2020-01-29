@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "airsupply"
-version = "0.1.0"
-description = "Manage OTA distribution for IPA files."
+version = "0.2.0"
+description = "Manage OTA distribution for IPA and APK files."
 authors = ["Michael Merickel"]
 license = "MIT"
 
