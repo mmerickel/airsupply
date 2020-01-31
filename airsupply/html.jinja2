@@ -1,74 +1,168 @@
 <!doctype html>
 <html>
 <head>
-    <title>{{ display_name }} v{{ version_name }} ({{ version_code }})</title>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <style type="text/css">
-        body {
-            font-family: Helvetica, Arial, sans-serif;
-            text-align: center;
-            color: #444;
-            font-size: 18px;
-        }
-        img {
-            display: block;
-            margin: 1em auto;
-            border: none;
-            width: 120px;
-            height: 120px;
-            border-radius: 20px;
-        }
-        .btn, a.btn, a.btn:visited, a.btn:hover, a.btn:link {
-            display: inline-block;
-            border-radius: 3px;
-            background-color: #0095c8;
-            color: white;
-            padding: .8em 1em;
-            text-decoration: none;
-        }
-        a.btn:hover {
-            background-color: #00bbfb;
-            color: white;
-        }
-        p {
-            color: #999
-        }
-    </style>
+  <title>
+    {{ packages[0].display_name }}
+    v{{ packages[0].version_name }}
+    ({{ packages[0].version_code }})
+  </title>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <style type="text/css">
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      text-align: center;
+      color: #444;
+      font-size: 18px;
+    }
+    img {
+      display: block;
+      margin: 1em auto;
+      border: none;
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+    }
+    .btn, a.btn, a.btn:visited, a.btn:hover, a.btn:link {
+      display: inline-block;
+      border-radius: 3px;
+      background-color: #0095c8;
+      color: white;
+      padding: .8em 1em;
+      text-decoration: none;
+    }
+    a.btn:hover {
+      background-color: #00bbfb;
+      color: white;
+    }
+    p {
+      color: #999
+    }
+    .hidden {
+      display: none;
+    }
+    .disabled {
+      opacity: 0.5;
+    }
+  </style>
 </head>
 <body>
-    <h1>{{ display_name }}</h1>
-    <h2>{{ version_name }} ({{ version_code }})</h2>
-{% if package_type == 'ipa' %}
-    {% if image_url %}
-    <a href="itms-services://?action=download-manifest&amp;url={{ manifest_url | urlencode }}">
-        <img src="{{ image_url | safe }}">
-    </a>
+  <select id="package-select" class="hidden">
+    {% for pkg in packages %}
+    <option value="pkg-{{ loop.index }}">
+      [{{ pkg.package_type }}]
+      {{ pkg.display_name }}
+      v{{ pkg.version_name }}
+      ({{ pkg.version_code }})
+    </option>
+    {% endfor %}
+  </select>
+{% for pkg in packages %}
+  <div
+    id="pkg-{{ loop.index }}"
+    class="package"
+    data-title="{{ pkg.display_name }} v{{ pkg.version_name }} ({{ pkg.version_code }})"
+    data-type="{{ pkg.package_type }}"
+  >
+    <h1>{{ pkg.display_name }}</h1>
+    <h2>{{ pkg.version_name }} ({{ pkg.version_code }})</h2>
+  {% if pkg.package_type == 'ipa' %}
+    {% if pkg.image_url %}
+    <img src="{{ pkg.image_url | safe }}">
     {% endif %}
     <a
-        href="itms-services://?action=download-manifest&amp;url={{ manifest_url | urlencode }}"
-        class="btn"
+      href="itms-services://?action=download-manifest&amp;url={{ pkg.manifest_url | urlencode }}"
+      class="btn install-btn"
     >
-        Tap to install
+      Tap to install
     </a>
-    {% if minimum_os_version is defined %}
-    <p class="comment">
-        This app requires iOS {{ minimum_os_version }} or higher.
-    </p>
-    {% endif %}
-{% elif package_type == 'apk' %}
-    {% if image_url %}
-    <a href="{{ apk_url | safe }}">
-        <img src="{{ image_url | safe }}">
-    </a>
+  {% elif pkg.package_type == 'apk' %}
+    {% if pkg.image_url %}
+    <img src="{{ pkg.image_url | safe }}">
     {% endif %}
     <a
-        href="{{ apk_url | safe }}"
-        class="btn"
+      href="{{ pkg.apk_url | safe }}"
+      class="btn install-btn"
     >
-        Tap to install
+      Tap to install
     </a>
-{% else %}
+  {% else %}
     {{ die('Unsupported package type') }}
-{% endif %}
+  {% endif %}
+    <p class="comment">
+      {% set os = 'iOS' if pkg.package_type == 'ipa' else 'Android' %}
+      {% if pkg.minimum_os_version is defined %}
+      This app requires <b>{{ os }} {{ pkg.minimum_os_version }}</b> or higher.
+      {% else %}
+      This app requires <b>{{ os }}</b>.
+      {% endif %}
+    </p>
+  </div>
+{% endfor %}
+
+  <script>
+  var OS = (function() {
+    var ua = navigator.userAgent || '';
+    // test windows first because it contains android
+    if (/windows phone/i.test(ua)) {
+      return 'windows';
+    }
+    if (/Android/i.test(ua)) {
+      return 'android';
+    }
+    if (/iPad|iPhone|iPod/i.test(ua) && !window.MSStream) {
+      return 'ios';
+    }
+    return 'unknown';
+  })();
+
+  var select = document.getElementById('package-select');
+  var packages = document.querySelectorAll('.package');
+
+  // do not show the selector if there's only one package
+  if (packages.length > 1) {
+    select.classList.remove('hidden');
+  }
+  select.addEventListener('change', function (e) {
+    selectPackageById(e.target.value);
+  });
+
+  var defaultPackageId = null;
+  for (var i = 0 ; i < packages.length ; ++i) {
+    var pkg = packages[i];
+    var isPackageInstallable = (
+      (OS === 'android' && pkg.dataset.type === 'apk')
+      || (OS === 'ios' && pkg.dataset.type === 'ipa')
+    );
+    if (isPackageInstallable) {
+      if (defaultPackageId === null) {
+        defaultPackageId = pkg.id;
+      }
+    }
+    else {
+      var btn = pkg.querySelector('.install-btn');
+      btn.classList.add('disabled');
+    }
+  }
+
+  if (defaultPackageId === null) defaultPackageId = packages[0].id;
+  for (var i = 0 ; i < select.options.length ; ++i) {
+    var opt = select.options[i];
+    opt.selected = opt.value === defaultPackageId;
+  }
+  selectPackageById(defaultPackageId);
+
+  function selectPackageById(id) {
+    for (var i = 0 ; i < packages.length ; ++i) {
+      var pkg = packages[i];
+      if (pkg.id === id) {
+        document.title = pkg.dataset.title;
+        pkg.classList.remove('hidden');
+      }
+      else {
+        pkg.classList.add('hidden');
+      }
+    }
+  }
+  </script>
 </body>
 </html>
