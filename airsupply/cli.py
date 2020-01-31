@@ -3,6 +3,7 @@ import logging
 
 @click.group()
 @click.option('-v', '--verbose', count=True)
+@click.version_option()
 def main(verbose=0):
     if verbose < 1:
         level = logging.WARN
