@@ -4,11 +4,11 @@ import typing
 
 @attr.s(auto_attribs=True)
 class S3Target:
-    client: typing.Any = None
     bucket: str
     acl: str
     public: bool
     expires: int
+    client: typing.Any = None
 
     def __attrs_post_init__(self):
         if self.client is None:
