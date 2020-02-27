@@ -2,6 +2,8 @@ import attr
 import os
 from urllib.parse import urljoin
 
+log = __import__('logging').getLogger(__name__)
+
 @attr.s(auto_attribs=True)
 class LocalTarget:
     url: str
@@ -15,6 +17,7 @@ class LocalTarget:
 
         os.makedirs(root_dir, exist_ok=True)
 
+        log.info(f'uploading object to {path}')
         with open(path, 'wb') as fp:
             if not isinstance(data, bytes):
                 data = data.read()
