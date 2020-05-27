@@ -2,17 +2,19 @@ import click
 import logging
 import os
 
+DEFAULT_LOG_FORMAT = '%(levelname)s: %(message)s'
+VERBOSE_LOG_FORMAT = '%(asctime)s %(levelname)s %(name)s: %(message)s'
+
 @click.group()
 @click.option('-v', '--verbose', count=True)
 @click.version_option()
 def main(verbose=0):
-    if verbose < 1:
-        level = logging.WARN
-    elif verbose == 1:
-        level = logging.INFO
-    elif verbose >= 2:
+    level = logging.INFO
+    format = DEFAULT_LOG_FORMAT
+    if verbose > 0:
         level = logging.DEBUG
-    logging.basicConfig(level=level)
+        format = VERBOSE_LOG_FORMAT
+    logging.basicConfig(format=format, level=level)
 
 @click.command('s3:push')
 @click.option('-b', '--bucket', required=True)
