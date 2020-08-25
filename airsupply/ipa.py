@@ -77,9 +77,18 @@ def parse_metadata(plist, zip, app_path):
     icons.update(parse_icon_metadata(plist, zip, app_path, 'CFBundleIcons'))
     icons.update(parse_icon_metadata(plist, zip, app_path, 'CFBundleIcons~ipad'))
 
+    display_name = plist.get('CFBundleDisplayName')
+    if display_name is None:
+        display_name = plist.get('CFBundleName')
+    if display_name is None:
+        raise ValueError(
+            'could not determine display name from CFBundleDisplayName or '
+            'CFBundleName'
+        )
+
     return dict(
         id=plist['CFBundleIdentifier'],
-        display_name=plist['CFBundleDisplayName'],
+        display_name=display_name,
         short_version=plist['CFBundleShortVersionString'],
         version=plist['CFBundleVersion'],
         minimum_os_version=plist.get('MinimumOSVersion'),
