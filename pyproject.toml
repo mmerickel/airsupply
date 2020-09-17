@@ -1,17 +1,17 @@
 [tool.poetry]
 name = "airsupply"
-version = "0.2.6"
+version = "0.2.7"
 description = "Manage OTA distribution for IPA and APK files."
 authors = ["Michael Merickel"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.7"
-boto3 = "^1.11.8"
-jinja2 = "^2.10.3"
-click = "^7.0"
-attrs = "^19.3.0"
-pyaxmlparser = "^0.3.24"
+python = ">= 3.7"
+boto3 = ">= 1.14.0"
+jinja2 = ">= 2.10.3"
+click = ">= 7.0"
+attrs = ">= 20.2.0"
+pyaxmlparser = ">= 0.3.24"
 
 [tool.poetry.dev-dependencies]
 
