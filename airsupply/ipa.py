@@ -103,6 +103,7 @@ icon_re = re.compile(
     (?:
         @
         (?P<r>\d+)
+        x
     )?
     (?:~ipad)?
     \.png
