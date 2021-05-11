@@ -21,6 +21,7 @@ class IPA:
     display_name: str
     short_version: str
     version: str
+    platform: str
     minimum_os_version: str
     icons: typing.Dict[int, Icon]
     plist: typing.Dict[str, typing.Any]
@@ -91,6 +92,7 @@ def parse_metadata(plist, zip, app_path):
         display_name=display_name,
         short_version=plist['CFBundleShortVersionString'],
         version=plist['CFBundleVersion'],
+        platform=plist['DTPlatformName'],
         minimum_os_version=plist.get('MinimumOSVersion'),
         icons=icons,
     )

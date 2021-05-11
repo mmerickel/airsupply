@@ -41,7 +41,7 @@ def push_ipa(ipa, s3, prefix):
     icon = ipa.find_best_icon(512)
     if icon is not None:
         with ipa.open_asset(icon.name) as fp:
-            image_url = s3.put_object(f'{prefix}-ios.png', fp, 'image/png')
+            image_url = s3.put_object(f'{prefix}.{ipa.platform}.png', fp, 'image/png')
 
     with open(ipa.filename, 'rb') as fp:
         ipa_url = s3.put_object(f'{prefix}.ipa', fp, 'application/zip')
@@ -69,6 +69,7 @@ def push_ipa(ipa, s3, prefix):
         image_url=image_url,
         ipa_url=ipa_url,
         manifest_url=manifest_url,
+        platform=ipa.platform,
     )
 
 def push_apk(apk, s3, prefix):
@@ -78,7 +79,7 @@ def push_apk(apk, s3, prefix):
         image_data = apk.get_file(icon)
         image_ext = os.path.splitext(icon)[1]
         image_type, _ = mimetypes.guess_type(icon, strict=False)
-        image_url = s3.put_object(f'{prefix}-android{image_ext}', image_data, image_type)
+        image_url = s3.put_object(f'{prefix}.android{image_ext}', image_data, image_type)
 
     with open(apk.filename, 'rb') as fp:
         apk_url = s3.put_object(

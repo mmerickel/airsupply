@@ -90,7 +90,7 @@
     {{ die('Unsupported package type') }}
   {% endif %}
     <p class="comment">
-      {% set os = 'iOS' if pkg.package_type == 'ipa' else 'Android' %}
+      {% set os = 'Android' if pkg.package_type == 'apk' else 'WatchOS' if pkg.platform == 'watchos' else 'iOS' %}
       {% if pkg.minimum_os_version is defined %}
       This app requires <b>{{ os }} {{ pkg.minimum_os_version }}</b> or higher.
       {% else %}

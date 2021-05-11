@@ -12,7 +12,7 @@
                         <key>url</key>
                         <string>{{ ipa_url | escape }}</string>
                     </dict>
-                    {% if image_url %}
+                    {%- if image_url %}
                     <dict>
                         <key>kind</key>
                         <string>display-image</string>
@@ -21,7 +21,7 @@
                         <key>url</key>
                         <string>{{ image_url | escape }}</string>
                     </dict>
-                    {% endif %}
+                    {%- endif %}
                 </array>
                 <key>metadata</key>
                 <dict>
@@ -31,6 +31,10 @@
                     <string>{{ ipa.short_version }}</string>
                     <key>kind</key>
                     <string>software</string>
+                    {%- if ipa.platform == 'watchos' %}
+                    <key>platform-identifier</key>
+                    <string>com.apple.platform.watchos</string>
+                    {%- endif %}
                     <key>title</key>
                     <string>{{ ipa.display_name }}</string>
                 </dict>
