@@ -97,6 +97,7 @@
       This app requires <b>{{ os }}</b>.
       {% endif %}
     </p>
+    <p class="comment">{{ pkg.app_id }}</p>
   </div>
 {% endfor %}
 
@@ -167,3 +168,7 @@
   </script>
 </body>
 </html>
+<!--
+created at: {{ created_at }}
+updated at: {{ updated_at }}
+-->

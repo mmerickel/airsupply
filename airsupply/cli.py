@@ -18,12 +18,13 @@ def main(verbose=0):
 
 @click.command('s3:push')
 @click.option('-b', '--bucket', required=True)
-@click.option('-p', '--public', default=False, is_flag=True)
+@click.option('-p', '--public', is_flag=True, default=False)
 @click.option('--acl')
 @click.option('--prefix')
 @click.option('--expires', type=int, default=86400)
+@click.option('--overwrite-index', is_flag=True, default=False)
 @click.argument('packages', nargs=-1, required=True)
-def s3_push(packages, bucket, acl, prefix, public, expires):
+def s3_push(packages, bucket, acl, prefix, public, expires, overwrite_index):
     from .push import push
     from .s3 import S3Target
 
@@ -37,14 +38,15 @@ def s3_push(packages, bucket, acl, prefix, public, expires):
         expires=expires,
     )
 
-    url = push(target, packages, prefix=prefix)
+    url = push(target, packages, prefix=prefix, overwrite_index=overwrite_index)
     click.echo(url)
 
 @click.command('local:push')
 @click.option('--url', required=True)
 @click.option('--prefix')
+@click.option('--overwrite-index', is_flag=True, default=False)
 @click.argument('packages', nargs=-1, required=True)
-def local_push(packages, url, prefix):
+def local_push(packages, url, prefix, overwrite_index):
     from .local import LocalTarget
     from .push import push
 
@@ -58,7 +60,7 @@ def local_push(packages, url, prefix):
         root_dir=os.getcwd(),
     )
 
-    url = push(target, packages, prefix=prefix)
+    url = push(target, packages, prefix=prefix, overwrite_index=overwrite_index)
     click.echo(url)
 
 main.add_command(s3_push)

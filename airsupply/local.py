@@ -24,3 +24,13 @@ class LocalTarget:
             fp.write(data)
 
         return url
+
+    def get_object(self, path, *, raise_if_not_found=True):
+        path = os.path.join(self.root_dir, path)
+        try:
+            with open(path, 'rb') as fp:
+                return fp.read()
+        except FileNotFoundError:
+            if raise_if_not_found:
+                raise
+            return None

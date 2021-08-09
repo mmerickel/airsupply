@@ -39,3 +39,16 @@ class S3Target:
             url = url[:i]
         log.debug(f'object url={url}')
         return url
+
+    def get_object(self, path, *, raise_if_not_found=True):
+        try:
+            response = self.client.get_object(
+                Bucket=self.bucket,
+                Key=path,
+            )
+        except self.client.exceptions.NoSuchKey:
+            if raise_if_not_found:
+                raise
+            return None
+
+        return response['Body'].read()
