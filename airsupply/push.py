@@ -34,11 +34,11 @@ def push(target, package_paths, *, prefix=None, overwrite_index=False):
     html_tmpl = importlib.resources.read_text(__package__, 'html.jinja2')
     html = render_template(html_tmpl, context=index)
     url = target.put_object(
-        f'{prefix}/index.html',
+        f'{prefix}.html',
         html.encode('utf8'),
         'text/html',
     )
-    return url.replace('index.html', '')
+    return url
 
 def push_ipa(ipa, s3, prefix):
     location = f'{prefix}/ipa-{ipa.version}'
