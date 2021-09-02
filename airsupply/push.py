@@ -41,7 +41,7 @@ def push(target, package_paths, *, prefix=None, overwrite_index=False):
     return url
 
 def push_ipa(ipa, s3, prefix):
-    location = f'{prefix}/ipa-{ipa.version}'
+    location = f'{prefix}/ipas/{os.path.basename(prefix)}.v{ipa.version}'
     image_url = None
     icon = ipa.find_best_icon(512)
     if icon is not None:
@@ -79,7 +79,7 @@ def push_ipa(ipa, s3, prefix):
     )
 
 def push_apk(apk, s3, prefix):
-    location = f'{prefix}/apk-{apk.version_code}'
+    location = f'{prefix}/apks/{os.path.basename(prefix)}.v{apk.version_code}'
     image_url = None
     icon = apk.get_app_icon(512)
     if icon and not icon.endswith('.xml'):
