@@ -312,6 +312,16 @@ click = ">=6.7"
 lxml = "*"
 
 [[package]]
+name = "pyipng"
+version = "1.0.3"
+description = "Convert CgBI to PNG with Python"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "PyiPNG-1.0.3.tar.gz", hash = "sha256:8913bc1d19bbe32fa5123fe7594741e6a09e396394a09fdfe31cc087cfad460a"},
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
@@ -398,4 +408,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">= 3.7"
-content-hash = "0ce18ab706757dd226c99de9a3cf7643aff3b171ab5231aad1414f5ea10ac28d"
+content-hash = "3ab0e266a59e3f4d5c0ea5eb3c3d34c8ccd022fd6550aab8e856c4444cc4e352"

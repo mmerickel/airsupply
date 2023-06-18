@@ -12,6 +12,7 @@ jinja2 = ">= 2.10.3"
 click = ">= 7.0"
 attrs = ">= 20.2.0"
 pyaxmlparser = ">= 0.3.24"
+pyipng = "^1.0.3"
 
 [tool.poetry.dev-dependencies]
 

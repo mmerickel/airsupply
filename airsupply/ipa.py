@@ -1,7 +1,9 @@
 import attrs
 from contextlib import contextmanager
+import io
 import plistlib
 import posixpath
+import pyipng
 import re
 import typing
 import zipfile
@@ -29,6 +31,10 @@ class IPA:
     @contextmanager
     def open_asset(self, name):
         with self.zip.open(f'{self.app_path}/{name}') as fp:
+            # http://iphonedevwiki.net/index.php/CgBI_file_format
+            if name.endswith('.png'):
+                raw = pyipng.convert(fp.read())
+                fp = io.BytesIO(raw)
             yield fp
 
     def find_best_icon(self, target_size=1024):
