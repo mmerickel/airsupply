@@ -1,10 +1,10 @@
-import attr
+import attrs
 import os
 from urllib.parse import urljoin
 
 log = __import__('logging').getLogger(__name__)
 
-@attr.s(auto_attribs=True)
+@attrs.define
 class LocalTarget:
     url: str
     root_dir: str

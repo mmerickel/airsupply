@@ -1,10 +1,10 @@
-import attr
+import attrs
 import boto3
 import typing
 
 log = __import__('logging').getLogger(__name__)
 
-@attr.s(auto_attribs=True)
+@attrs.define
 class S3Target:
     bucket: str
     acl: str

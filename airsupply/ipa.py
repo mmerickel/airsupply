@@ -1,4 +1,4 @@
-import attr
+import attrs
 from contextlib import contextmanager
 import plistlib
 import posixpath
@@ -6,12 +6,12 @@ import re
 import typing
 import zipfile
 
-@attr.s(auto_attribs=True)
+@attrs.define
 class Icon:
     size: int
     name: str
 
-@attr.s(auto_attribs=True)
+@attrs.define
 class IPA:
     filename: str
     zip: zipfile.ZipFile
