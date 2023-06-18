@@ -43,10 +43,11 @@ def s3_push(packages, bucket, acl, prefix, public, expires, overwrite_index):
 
 @click.command('local:push')
 @click.option('--url', required=True)
+@click.option('--root')
 @click.option('--prefix')
 @click.option('--overwrite-index', is_flag=True, default=False)
 @click.argument('packages', nargs=-1, required=True)
-def local_push(packages, url, prefix, overwrite_index):
+def local_push(packages, url, root, prefix, overwrite_index):
     from .local import LocalTarget
     from .push import push
 
@@ -55,9 +56,12 @@ def local_push(packages, url, prefix, overwrite_index):
     if not url.endswith('/'):
         url += '/'
 
+    if not root:
+        root = os.getcwd()
+
     target = LocalTarget(
         url=url,
-        root_dir=os.getcwd(),
+        root_dir=root,
     )
 
     url = push(target, packages, prefix=prefix, overwrite_index=overwrite_index)

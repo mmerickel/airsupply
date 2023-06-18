@@ -25,7 +25,11 @@ class S3Target:
             ACL=self.acl,
             ContentType=content_type,
         )
+        url = self.get_url(path)
+        log.debug(f'object url={url}')
+        return url
 
+    def get_url(self, path):
         url = self.client.generate_presigned_url(
             'get_object',
             Params=dict(
@@ -37,7 +41,6 @@ class S3Target:
         if self.public:
             i = url.index('?')
             url = url[:i]
-        log.debug(f'object url={url}')
         return url
 
     def get_object(self, path, *, raise_if_not_found=True):

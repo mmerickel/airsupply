@@ -10,20 +10,21 @@ class LocalTarget:
     root_dir: str
 
     def put_object(self, path, data, content_type):
-        url = urljoin(self.url, path)
+        local_path = os.path.join(self.root_dir, path)
+        local_dir = os.path.dirname(local_path)
 
-        path = os.path.join(self.root_dir, path)
-        root_dir = os.path.dirname(path)
-
-        os.makedirs(root_dir, exist_ok=True)
+        os.makedirs(local_dir, exist_ok=True)
 
         log.info(f'uploading object to {path}')
-        with open(path, 'wb') as fp:
+        with open(local_path, 'wb') as fp:
             if not isinstance(data, bytes):
                 data = data.read()
             fp.write(data)
 
-        return url
+        return self.get_url(path)
+
+    def get_url(self, path):
+        return urljoin(self.url, path)
 
     def get_object(self, path, *, raise_if_not_found=True):
         path = os.path.join(self.root_dir, path)
