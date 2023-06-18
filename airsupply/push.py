@@ -3,6 +3,7 @@ import importlib.resources
 import json
 import mimetypes
 import os.path
+from urllib.parse import quote_plus
 
 from .apk import is_apk, open_apk
 from .ipa import is_ipa, open_ipa
@@ -72,11 +73,16 @@ def push_ipa(ipa, s3, prefix):
         version_name=ipa.short_version,
         version_code=ipa.version,
         minimum_os_version=ipa.minimum_os_version,
+        platform=ipa.platform,
         image_url=image_url,
         ipa_url=ipa_url,
         manifest_url=manifest_url,
-        platform=ipa.platform,
+        install_url=make_ipa_install_url(manifest_url),
+        download_url=ipa_url,
     )
+
+def make_ipa_install_url(manifest_url):
+    return f'itms-services://?action=download-manifest&url={quote_plus(manifest_url)}'
 
 def push_apk(apk, s3, prefix):
     location = f'{prefix}/apks/{os.path.basename(prefix)}.v{apk.version_code}'
@@ -101,26 +107,33 @@ def push_apk(apk, s3, prefix):
         version_code=apk.version_code,
         image_url=image_url,
         apk_url=apk_url,
+        install_url=apk_url,
+        download_url=apk_url,
     )
 
 def update_index(target, packages, prefix, *, overwrite=False, readonly=False):
-    data = target.get_object(
-        f'{prefix}/index.json',
-        raise_if_not_found=False,
-    )
+    index_path = f'{prefix}/index.json'
+    index_url = target.get_url(index_path)
+    data = target.get_object(index_path, raise_if_not_found=False)
     if not data or overwrite:
         index = {
+            'index_url': index_url,
             'packages': [],
             'created_at': datetime.now().isoformat(),
         }
     else:
         index = json.loads(data.decode('utf8'))
 
+    # old index.json did not have index_url
+    if 'index_url' not in index:
+        index['index_url'] = index_url
+
     # de-duplicate packages by using the new copy of the same build
     prev_packages = index['packages']
     out_packages = list(packages)
     codes = {(p['app_id'], p['version_code']) for p in packages}
     for prev_pkg in prev_packages:
+        pkg_type = prev_pkg['package_type']
         if (prev_pkg['app_id'], prev_pkg['version_code']) in codes:
             log.debug(
                 f'overwriting index entry for '
@@ -128,6 +141,21 @@ def update_index(target, packages, prefix, *, overwrite=False, readonly=False):
                 f'version={prev_pkg["version_code"]}'
             )
             continue
+        
+        # old index.json did not have install_url so let's add it
+        if 'install_url' not in prev_pkg:
+            if pkg_type == 'ipa':
+                prev_pkg['install_url'] = make_ipa_install_url(prev_pkg['manifest_url'])
+            elif pkg_type == 'apk':
+                prev_pkg['install_url'] = prev_pkg['apk_url']
+
+        # old index.json did not have download_url so let's add it
+        if 'download_url' not in prev_pkg:
+            if pkg_type == 'ipa':
+                prev_pkg['download_url'] = prev_pkg['ipa_url']
+            elif pkg_type == 'apk':
+                prev_pkg['download_url'] = prev_pkg['apk_url']
+
         out_packages.append(prev_pkg)
 
     out_packages.sort(key=lambda p: p['uploaded_at'], reverse=True)
@@ -136,8 +164,9 @@ def update_index(target, packages, prefix, *, overwrite=False, readonly=False):
 
     if not readonly:
         target.put_object(
-            f'{prefix}/index.json',
+            index_path,
             json.dumps(index, indent=2).encode('utf8'),
             'application/json',
         )
+
     return index

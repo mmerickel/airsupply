@@ -9,21 +9,63 @@
     ({{ packages[0].version_code }})
   </title>
   <style type="text/css">
+    button {
+      all: unset;
+    }
+
+    .hidden {
+      display: none;
+    }
+    .disabled {
+      opacity: 0.5;
+    }
+
+    .modal {
+      display: none;
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto; /* 15% from the top and centered */
+      padding: 20px;
+      border: 1px solid #888;
+      border-radius: 20px;
+      width: 80%; /* Could be more or less, depending on screen size */
+      max-width: 400px;
+    }
+    .modal-close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      line-height: 0px;
+    }
+    .modal-close:hover,
+    .modal-close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
     body {
       font-family: Helvetica, Arial, sans-serif;
       text-align: center;
       color: #444;
       font-size: 18px;
     }
-    img {
-      display: block;
-      margin: 1em auto;
-      border: none;
-      width: 120px;
-      height: 120px;
-      border-radius: 20px;
+    p {
+      color: #999
     }
-    .btn, a.btn, a.btn:visited, a.btn:hover, a.btn:link {
+
+    .btn, .btn:visited, .btn:hover, .btn:link {
       display: inline-block;
       border-radius: 3px;
       background-color: #0095c8;
@@ -31,23 +73,27 @@
       padding: .8em 1em;
       text-decoration: none;
     }
-    a.btn:hover {
+    .btn:hover {
       background-color: #00bbfb;
       color: white;
     }
-    p {
-      color: #999
+
+    .app-icon {
+      display: block;
+      margin: 1em auto;
+      border: none;
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
     }
-    .hidden {
-      display: none;
-    }
-    .disabled {
-      opacity: 0.5;
+
+    #qrcode img, #qrcode canvas {
+      margin: auto;
     }
   </style>
 </head>
 <body>
-  <select id="package-select" class="hidden">
+  <select id="package-select">
     {% for pkg in packages %}
     <option value="pkg-{{ loop.index }}">
       [{{ pkg.package_type }}]
@@ -66,29 +112,24 @@
   >
     <h1>{{ pkg.display_name }}</h1>
     <h2>{{ pkg.version_name }} ({{ pkg.version_code }})</h2>
-  {% if pkg.package_type == 'ipa' %}
     {% if pkg.image_url %}
-    <img src="{{ pkg.image_url | safe }}">
+    <img class="app-icon" src="{{ pkg.image_url | safe }}">
     {% endif %}
     <a
-      href="itms-services://?action=download-manifest&amp;url={{ pkg.manifest_url | urlencode }}"
+      href="{{ pkg.install_url | safe }}"
       class="btn install-btn"
     >
-      Tap to install
+      Install
     </a>
-  {% elif pkg.package_type == 'apk' %}
-    {% if pkg.image_url %}
-    <img src="{{ pkg.image_url | safe }}">
-    {% endif %}
+    <button class="btn show-qr-btn">
+      Show QR
+    </button>
     <a
-      href="{{ pkg.apk_url | safe }}"
-      class="btn install-btn"
+      href="{{ pkg.download_url | safe }}"
+      class="btn"
     >
-      Tap to install
+      Download
     </a>
-  {% else %}
-    {{ die('Unsupported package type') }}
-  {% endif %}
     <p class="comment">
       {% set os = 'Android' if pkg.package_type == 'apk' else 'WatchOS' if pkg.platform == 'watchos' else 'iOS' %}
       {% if pkg.minimum_os_version is defined %}
@@ -101,6 +142,15 @@
   </div>
 {% endfor %}
 
+  <div id="qr-modal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <div id="qrcode"></div>
+    </div>
+  </div>
+
+  <!-- https://cdnjs.com/libraries/qrcodejs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
   var OS = (function() {
     var ua = navigator.userAgent || '';
@@ -119,13 +169,36 @@
 
   var select = document.getElementById('package-select');
   var packages = document.querySelectorAll('.package');
+  var modal = document.getElementById('qr-modal');
+  var modalClose = document.getElementsByClassName('modal-close')[0];
+  var qrcode = new QRCode(document.getElementById('qrcode'), {
+    text: window.location.href,
+    width: 256,
+    height: 256,
+    colorDark : "#000000",
+    colorLight : "#ffffff",
+    correctLevel : QRCode.CorrectLevel.H,
+  });
 
-  // do not show the selector if there's only one package
-  if (packages.length > 1) {
-    select.classList.remove('hidden');
-  }
   select.addEventListener('change', function (e) {
     selectPackageById(e.target.value);
+  });
+
+  modalClose.addEventListener('click', function () {
+    modal.style.display = 'none';
+  });
+
+  window.addEventListener('click', function (e) {
+    if (e.target == modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  window.addEventListener('keydown', function (e) {
+    if (modal.style.display === 'none') return;
+    if (e.key === 'Escape') {
+      modal.style.display = 'none';
+    }
   });
 
   var defaultPackageId = null;
@@ -135,18 +208,36 @@
       (OS === 'android' && pkg.dataset.type === 'apk')
       || (OS === 'ios' && pkg.dataset.type === 'ipa')
     );
-    if (isPackageInstallable) {
-      if (defaultPackageId === null) {
+    if (!isPackageInstallable) {
+      var installBtn = pkg.querySelector('.install-btn');
+      installBtn.classList.add('disabled');
+    }
+    else if (defaultPackageId === null) {
+      defaultPackageId = pkg.id;
+    }
+
+    var qrBtn = pkg.querySelector('.show-qr-btn');
+    qrBtn.addEventListener('click', function () {
+      modal.style.display = 'block';
+      qrcode.makeCode(window.location.href);
+    });
+  }
+
+  // if a fragment is set then search for that item first
+  if (window.location.hash) {
+    for (var i = 0 ; i < packages.length ; ++i) {
+      var pkg = packages[i];
+      if (window.location.hash === '#' + pkg.id) {
         defaultPackageId = pkg.id;
       }
     }
-    else {
-      var btn = pkg.querySelector('.install-btn');
-      btn.classList.add('disabled');
-    }
+  }
+  // if we still don't have an initial package then use the first
+  if (!defaultPackageId) {
+    defaultPackageId = packages[0].id;
   }
 
-  if (defaultPackageId === null) defaultPackageId = packages[0].id;
+  // mark the default package as selected
   for (var i = 0 ; i < select.options.length ; ++i) {
     var opt = select.options[i];
     opt.selected = opt.value === defaultPackageId;
@@ -158,6 +249,7 @@
       var pkg = packages[i];
       if (pkg.id === id) {
         document.title = pkg.dataset.title;
+        window.location.hash = '#' + pkg.id;
         pkg.classList.remove('hidden');
       }
       else {
