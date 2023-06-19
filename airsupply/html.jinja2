@@ -107,6 +107,7 @@
   <div
     id="pkg-{{ loop.index }}"
     class="package"
+    data-fragment="{{ pkg.app_id }}:{{ pkg.version_code }}"
     data-title="{{ pkg.display_name }} v{{ pkg.version_name }} ({{ pkg.version_code }})"
     data-type="{{ pkg.package_type }}"
   >
@@ -130,6 +131,9 @@
     >
       Download
     </a>
+    <p class="comment">
+      <a class="copy-link-btn" href="#{{ pkg.app_id }}:{{ pkg.version_code }}">Copy Permalink</a>
+    </p>
     <p class="comment">
       {% set os = 'Android' if pkg.package_type == 'apk' else 'WatchOS' if pkg.platform == 'watchos' else 'iOS' %}
       {% if pkg.minimum_os_version is defined %}
@@ -201,7 +205,20 @@
     }
   });
 
-  var defaultPackageId = null;
+  window.addEventListener('hashchange', function (e) {
+    if (!window.location.hash) return;
+
+    for (var i = 0 ; i < packages.length ; ++i) {
+      var pkg = packages[i];
+      if (window.location.hash === '#' + pkg.dataset.fragment) {
+        return selectPackageById(pkg.id);
+      }
+    }
+    // if nothing matched then just clear the hash
+    window.location.fragment = '';
+  });
+
+  var activePackageId = null;
   for (var i = 0 ; i < packages.length ; ++i) {
     var pkg = packages[i];
     var isPackageInstallable = (
@@ -212,50 +229,78 @@
       var installBtn = pkg.querySelector('.install-btn');
       installBtn.classList.add('disabled');
     }
-    else if (defaultPackageId === null) {
-      defaultPackageId = pkg.id;
+    else if (activePackageId === null) {
+      activePackageId = pkg.id;
     }
 
     var qrBtn = pkg.querySelector('.show-qr-btn');
     qrBtn.addEventListener('click', function () {
       modal.style.display = 'block';
-      qrcode.makeCode(window.location.href);
-    });
+      qrcode.makeCode(permalinkWithFragment(this.dataset.fragment));
+    }.bind(pkg));
+
+    var copyBtn = pkg.querySelector('.copy-link-btn');
+    copyBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      const type = "text/plain";
+      const text = permalinkWithFragment(this.dataset.fragment);
+      const blob = new Blob([text], { type });
+      const data = [new ClipboardItem({ [type]: blob })];
+
+      navigator.clipboard.write(data).then(
+        function () {},
+        function () {
+          alert('Failed to copy to clipboard.');
+        },
+      );
+    }.bind(pkg));
   }
 
   // if a fragment is set then search for that item first
   if (window.location.hash) {
     for (var i = 0 ; i < packages.length ; ++i) {
       var pkg = packages[i];
-      if (window.location.hash === '#' + pkg.id) {
-        defaultPackageId = pkg.id;
+      if (window.location.hash === '#' + pkg.dataset.fragment) {
+        activePackageId = pkg.id;
       }
     }
   }
   // if we still don't have an initial package then use the first
-  if (!defaultPackageId) {
-    defaultPackageId = packages[0].id;
+  if (!activePackageId) {
+    activePackageId = packages[0].id;
   }
 
   // mark the default package as selected
-  for (var i = 0 ; i < select.options.length ; ++i) {
-    var opt = select.options[i];
-    opt.selected = opt.value === defaultPackageId;
-  }
-  selectPackageById(defaultPackageId);
+  selectPackageById(activePackageId);
 
   function selectPackageById(id) {
+    activePackageId = id;
+
+    for (var i = 0 ; i < select.options.length ; ++i) {
+      var opt = select.options[i];
+      opt.selected = opt.value === id;
+    }
+
     for (var i = 0 ; i < packages.length ; ++i) {
       var pkg = packages[i];
       if (pkg.id === id) {
         document.title = pkg.dataset.title;
-        window.location.hash = '#' + pkg.id;
         pkg.classList.remove('hidden');
       }
       else {
         pkg.classList.add('hidden');
       }
     }
+    // clear out the selected hash
+    if (window.location.hash) {
+      window.location.hash = '';
+    }
+  }
+
+  function permalinkWithFragment(fragment) {
+    var url = window.location.href.split('#', 1)[0];
+    return url + '#' + fragment;
   }
   </script>
 </body>
